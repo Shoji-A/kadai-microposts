@@ -8,7 +8,7 @@ class User < ApplicationRecord
   # 暗号化
   has_secure_password
   
-  # UserからMicropostをみたとき、複数存在するため
+  # 一対多
   has_many :microposts
   # 自分がフォローしているUserへの参照
   has_many :relationships
@@ -17,26 +17,46 @@ class User < ApplicationRecord
   has_many :reverses_of_relationship, class_name: 'Relationship', foreign_key: 'follow_id'
   has_many :followers, through: :reverses_of_relationship, source: :user
   
+  # 自分がお気に入りしているmicropost
+  has_many :favorites
+  has_many :tweets, through: :favorites, source: :micropost
+  
+  # 自分自身ではないか
   def follow(other_user)
-    # 自分自身ではないか
     unless self == other_user
       self.relationships.find_or_create_by(follow_id: other_user.id)
     end
   end
-
+  
+  # アンフォロー機能
   def unfollow(other_user)
-    # フォローがあればアンフォロー
     relationship = self.relationships.find_by(follow_id: other_user.id)
     relationship.destroy if relationship
   end
-
+  
+  # フォローしているか
   def following?(other_user)
     self.followings.include?(other_user)
   end
   
-  #　タイムライン
+  # タイムライン
   def feed_microposts
     Micropost.where(user_id: self.following_ids + [self.id])
   end
+  
+  # お気に入りにする
+  def like(other_micropost)
+    self.favorites.find_or_create_by(micropost_id: other_micropost.id)
+  end
+  
+  # お気に入り解除
+  def unlike(other_micropost)
+    favorite = self.favorites.find_by(micropost_id: other_micropost.id)
+    favorite.destroy if favorite
+  end
+  
+  # お気に入りにしているか
+  def tweet?(other_micropost)
+    self.tweets.include?(other_micropost)
+  end
 end
-
