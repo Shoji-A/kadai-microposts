@@ -18,7 +18,7 @@ class User < ApplicationRecord
   has_many :followers, through: :reverses_of_relationship, source: :user
   
   # 自分がお気に入りしているmicropost
-  has_many :favorites
+  has_many :favorites, dependent: :destroy
   has_many :tweets, through: :favorites, source: :micropost
   
   # 自分自身ではないか

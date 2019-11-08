@@ -6,7 +6,7 @@ class Micropost < ApplicationRecord
   validates :content, presence: true, length: { maximum: 255 }
   
   # 自分のmicropostをお気に入りしているUserを参照
-  has_many :favorites
+  has_many :favorites, dependent: :destroy
   has_many :collectors, through: :favorites, source: :user
   
 end
